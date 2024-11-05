@@ -3,6 +3,7 @@ import torch
 from torch import nn
 import matplotlib.pyplot as plt
 from pathlib import Path
+from utils import plot_predictions
 
 # Hyperparameters
 RANDOM_SEED = 8192
@@ -67,54 +68,6 @@ def train_test_split(X:torch.Tensor, y:torch.Tensor):
     return X_train, X_test, y_train, y_test
 
 
-def plot_user_data(train_features,
-                   train_labels,
-                   test_features,
-                   test_labels,
-                   predictions=None):
-    """
-    Use this method for data visualization.
-
-    Parameters
-    -----------
-    train_features: torch.Tensor
-        A portion of the features that is used for training
-    train_labels: torch.Tensor
-        A portion of the labels that is used for training
-    test_features: torch.Tensor
-        A portion of the features that is used for testing
-    test_labels: torch.Tensor
-        A portion of the labels that is used for testing
-
-    Returns
-    --------
-    None
-    """
-    # Scatter plot the training data in blue
-    plt.scatter(x=train_features,
-                y=train_labels,
-                c='b',
-                s=5,
-                label='Training data')
-    # Scatter plot the testing data in green
-    plt.scatter(x=test_features,
-                y=test_labels,
-                c='g',
-                s=5,
-                label='Testing data')
-    # Check if there are any predictions
-    if predictions is not None:
-        # Scatter plot the prediction data in red
-        plt.scatter(x=test_features,
-                    y=predictions.detach().numpy(),
-                    c='r',
-                    s=5,
-                    label='Prediction Data')
-    # Show the legend
-    plt.legend(prop={'size': 10})
-    # Show the graph
-    plt.show()
-
 
 def visualize(predictions=None):
     plot_data = input('Do you want to plot the data [Y/N]: ')
@@ -122,7 +75,7 @@ def visualize(predictions=None):
         plot_data = input('Invalid input. Do you want to plot your data [Y/N]: ')
 
     if plot_data.lower()[0] == 'y':
-        plot_user_data(X_train, y_train, X_test, y_test, predictions)
+        plot_predictions(X_train, y_train, X_test, y_test, predictions)
 
 
 def train_and_test(_model, train_features, train_labels, test_features, test_labels, loss_function, _optimizer):
