@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # Hyperparameters
 RANDOM_SEED = 8192
@@ -178,7 +179,7 @@ def train_and_test(_model, train_features, train_labels, test_features, test_lab
                 epoch_count.append(epoch)
                 train_loss_values.append(train_loss.detach().numpy())
                 test_loss_values.append(test_loss.detach().numpy())
-                print(f'Epoch #{epoch} | Train Loss: {train_loss} | Test Loss: {test_loss}')
+                print(f'Epoch #{epoch} | Train Loss: {train_loss:.5f} | Test Loss: {test_loss:.5f}')
 
 
 def make_predictions(_model, test_features):
@@ -208,7 +209,6 @@ def plot_loss_curves():
     plt.ylabel('Loss Values')
     plt.legend(prop={'size': 10})
     plt.show()
-
 
 
 # __main__ section
@@ -242,3 +242,13 @@ if __name__ == '__main__':
     train_and_test(model, X_train, y_train, X_test, y_test, loss_fn, optimizer)
     make_predictions(model, X_test)
     plot_loss_curves()
+
+    # Save the model
+    MODEL_PATH = Path('./')
+    MODEL_PATH.mkdir(parents=True, exist_ok=True)
+
+    MODEL_PATH_NAME = 'linear_regression_model.pth'
+    MODEL_PATH_SAVE = MODEL_PATH / MODEL_PATH_NAME
+
+    print(f'Saving the model to {MODEL_PATH_SAVE}')
+    torch.save(f=MODEL_PATH_SAVE, obj=model.state_dict())
