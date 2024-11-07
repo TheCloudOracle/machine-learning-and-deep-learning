@@ -84,3 +84,55 @@ def plot_predictions(train_features,
     # Show the graph
     plt.show()
 
+
+# The accuracy metric
+def accuracy(y_pred, y_true):
+    correct = torch.eq(y_pred, y_true).sum().item()
+    acc = (correct / len(y_true)) * 100
+    return acc
+
+
+def train_test_loop(model_, loss_fn_, optimizer_, train_features, train_labels, test_features, test_labels):
+    epochs = int(input('Please enter the number of epochs to train for: '))
+    model_type = ''
+    if len(torch.unique(train_labels)) > 2:
+        model_type = 'mc'
+    else:
+        model_type = 'bc'
+
+    for epoch in range(epochs):
+        #### Training ####
+        model_.train() # Put the model in training mode
+        # Forward pass
+        if model_type == 'mc':
+            train_logits = model_(train_features)
+            train_prop_preds = torch.softmax(train_logits, dim=1).argmax(dim=1)
+        else:
+            train_logits = model_(train_features).squeeze()
+            train_prop_preds = torch.round(torch.sigmoid(train_logits))
+        # Calculate loss and accuracy
+        train_loss = loss_fn_(train_logits, train_labels.long())
+        train_acc = accuracy(train_prop_preds, train_labels)
+        # Optimizer zero grad
+        optimizer_.zero_grad()
+        # Backpropagation
+        train_loss.backward()
+        # Optimizer step
+        optimizer_.step()
+
+        #### Testing ####
+        model_.eval()
+        with torch.inference_mode(): # Turn off gradient tracking
+            # Forward pass
+            test_logits = model_(test_features).squeeze()
+            if model_type == 'mc':
+                test_prop_preds = torch.softmax(test_logits, dim=1).argmax(dim=1)
+            else:
+                test_prop_preds = torch.round(torch.sigmoid(test_logits))
+            # Calculate loss and accuracy
+            test_loss = loss_fn_(test_logits, test_labels.long())
+            test_acc = accuracy(test_prop_preds, test_labels)
+
+        if (epoch + 1) % 100 == 0:
+            print(f'Epoch #{epoch + 1} | Train Loss: {train_loss:.5f}, Train Accuracy: {train_acc:.2f}% | Test Loss: {test_loss:.5f}, Test Accuracy: {test_acc:.2f}%')
+

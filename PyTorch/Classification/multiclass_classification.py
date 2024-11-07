@@ -1,8 +1,8 @@
 # Import the dependecies
 import torch
 import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_circles
 from torch import nn
 from pathlib import Path
 
@@ -14,47 +14,62 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, parent_dir)
 from utils import plot_decision_boundary, train_test_loop
 
+
+
 # Hyperparameters
 INPUT_FEATURES = 2
-OUTPUT_FEATURES = 1
-HIDDEN_FEATURES = 10
-LEARNING_RATE = 1e-2
-RANDOM_SEED = 8192
+HIDDEN_FEATURES  = 10
+N_CENTERS = 9
 N_SAMPLES = 1000
+RANDOM_SEED = 8192
+LEARNING_RATE = 1e-2
+
 
 # Create the model
-class BinaryClassificationModel(nn.Module):
+class MultiClassClassificationModel(nn.Module):
     def __init__(self):
         super().__init__()
-        # Feel free to play around with the layers
+
+        # Create the layer stack
         self.layer_stack = nn.Sequential(
-            nn.Linear(in_features=INPUT_FEATURES, out_features=HIDDEN_FEATURES),
-            nn.ReLU(),
-            nn.Linear(in_features=HIDDEN_FEATURES, out_features=HIDDEN_FEATURES),
-            nn.ReLU(),
-            nn.Linear(in_features=HIDDEN_FEATURES, out_features=OUTPUT_FEATURES),
-            nn.ReLU()
-        )
+                            nn.Linear(in_features=INPUT_FEATURES, out_features=HIDDEN_FEATURES),
+                            nn.ReLU(),
+                            nn.Linear(in_features=HIDDEN_FEATURES, out_features=HIDDEN_FEATURES),
+                            nn.ReLU(),
+                            nn.Linear(in_features=HIDDEN_FEATURES, out_features=HIDDEN_FEATURES),
+                            nn.ReLU(),
+                            nn.Linear(in_features=HIDDEN_FEATURES, out_features=HIDDEN_FEATURES),
+                            nn.ReLU(),
+                            nn.Linear(in_features=HIDDEN_FEATURES, out_features=HIDDEN_FEATURES),
+                            nn.ReLU(),
+                            nn.Linear(in_features=HIDDEN_FEATURES, out_features=HIDDEN_FEATURES),
+                            nn.ReLU(),
+                            nn.Linear(in_features=HIDDEN_FEATURES, out_features=N_CENTERS),
+                            nn.ReLU()
+                        )
 
     # Override the forward method in nn.Module
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.layer_stack(x) # x -> layer_stack() -> output
+        return self.layer_stack(x)
 
-           
+
+
+
 def main():
     print('Generating data...')
     
-    X, y = make_circles(
+    X, y = make_blobs(
         n_samples=N_SAMPLES,
-        noise=0.03,
+        centers=N_CENTERS,
+        n_features=INPUT_FEATURES,
         random_state=RANDOM_SEED
     )
 
     print('Creating the model...')
-    model = BinaryClassificationModel()
+    model = MultiClassClassificationModel()
 
     print('Setting up optimizer and loss function')
-    loss_fn = nn.BCEWithLogitsLoss()
+    loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(params=model.parameters(), lr=LEARNING_RATE)
 
     print('Displaying data...')
@@ -109,7 +124,7 @@ def main():
     MODEL_PATH = Path('./')
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
 
-    MODEL_PATH_NAME = 'binary_classification.pth'
+    MODEL_PATH_NAME = 'multiclass_classification.pth'
     MODEL_PATH_SAVE = MODEL_PATH / MODEL_PATH_NAME
 
     print(f'Saving the model to {MODEL_PATH_SAVE}')
